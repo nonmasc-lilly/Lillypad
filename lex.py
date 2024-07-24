@@ -19,6 +19,8 @@ class TokenType(Enum):
     PRC             = 15;
     INP             = 16;
     POINTER         = 17;
+    DEFINE          = 18;
+    DUPLICATE       = 19;
 
 def optok(string: str, off: int) -> TokenType:
     match string[off]:
@@ -29,6 +31,7 @@ def optok(string: str, off: int) -> TokenType:
         case '(': return TokenType.OPEN_PAREN;
         case ')': return TokenType.CLOSE_PAREN;
         case '*': return TokenType.POINTER;
+        case '#': return TokenType.DEFINE;
         case _:   return None;
 def tokfstr(string: str) -> TokenType:
     if len(string) == 0: return None;
@@ -41,6 +44,7 @@ def tokfstr(string: str) -> TokenType:
         case "hlt":     return TokenType.HALT;
         case "prc":     return TokenType.PRC;
         case "inp":     return TokenType.INP;
+        case "dup":     return TokenType.DUPLICATE;
         case _:
             try:
                 int(string);
