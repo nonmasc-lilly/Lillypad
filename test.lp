@@ -1,5 +1,3 @@
-
-main(argc, argv)
-    "Hello World!\10"
-    while() prn . end
-end
+#x 10
+#y + x 10
+#z - y 5

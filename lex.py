@@ -21,6 +21,8 @@ class TokenType(Enum):
     POINTER         = 17;
     DEFINE          = 18;
     DUPLICATE       = 19;
+    REG8            = 20;
+    REGX            = 30;
 
 def optok(string: str, off: int) -> TokenType:
     match string[off]:
@@ -45,6 +47,8 @@ def tokfstr(string: str) -> TokenType:
         case "prc":     return TokenType.PRC;
         case "inp":     return TokenType.INP;
         case "dup":     return TokenType.DUPLICATE;
+        case "r8":      return TokenType.REG8;
+        case "rx":      return TokenType.REGX;
         case _:
             try:
                 int(string);
@@ -54,42 +58,52 @@ def tokfstr(string: str) -> TokenType:
 
 
 class Token:
-    def __init__(self, type: TokenType, value: str):
-        self.type = type;
+    def __init__(self, type: TokenType, value: str, line: int):
+        self.node_type = type;
         self.value = value;
+        self.line = line;
     def __repr__(self):
-        return f"({self.type.name} , {self.value})";
+        return f"({self.node_type.name} , {self.value}) on line: {self.line}";
 
 def lex_string(string: str) -> list[Token]:
     tokens: list[Token] = None;
     i:      int         = None;
     buf:    str         = None;
+    line:   int         = None;
     buf = "";
     tokens = [];
     i = 0;
+    line = 0;
     while i < len(string):
+        if string[i] == '\n':
+            line += 1;
         if string[i] == '"':
             if tokfstr(buf) != None:
-                tokens.append(Token(tokfstr(buf), buf));
+                tokens.append(Token(tokfstr(buf), buf, line));
                 buf = "";
             i += 1;
             buf = "";
             while i < len(string) and string[i] != '"':
+                if string[i] == '\n': line += 1;
                 if string[i] == '\\':
                     tmp: str = "";
-                    j:   int = i;
-                    while not string[j].isspace():
+                    j:   int = i+1;
+                    while not (string[j].isspace() or string[j] == '"'):
                         tmp += string[j];
                         j+=1;
                     try:
+                        print(tmp)
                         int(tmp);
                         buf += chr(int(tmp));
+                        i = j
+                        print(string[i]);
                     except ValueError:
                         i+=1;
                         buf += string[i];
+                    continue;
                 buf += string[i];
                 i += 1;
-            tokens.append(Token(TokenType.STRING_CONST, buf));
+            tokens.append(Token(TokenType.STRING_CONST, buf, line));
             buf = "";
             i+=1;
             continue;
@@ -100,17 +114,20 @@ def lex_string(string: str) -> list[Token]:
             continue;
         if string[i] == ' ' or string[i] == '\n' or string[i] == '\t' or string[i] == '\r':
             if tokfstr(buf) != None:
-                tokens.append(Token(tokfstr(buf), buf));
+                tokens.append(Token(tokfstr(buf), buf, line));
                 buf = "";
             i+=1;
             continue;
         if optok(string, i) != None:
             if tokfstr(buf) != None:
-                tokens.append(Token(tokfstr(buf), buf));
+                tokens.append(Token(tokfstr(buf), buf, line));
                 buf = "";
-            tokens.append(Token(optok(string, i), None));
+            tokens.append(Token(optok(string, i), None, line));
             i+=1;
             continue;
         buf += string[i];
         i += 1;
+    if tokfstr(buf) != None:
+        tokens.append(Token(tokfstr(buf), buf, line));
+        buf = "";
     return tokens;
