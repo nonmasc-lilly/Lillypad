@@ -8,32 +8,38 @@ class TokenType(Enum):
     CLOSE_PAREN     =  4;
     WHILE           =  5;
     CALL            =  6;
-    POP             =  7;
-    END             =  8;
-    IF              =  9;
-    ELSE            = 10;
-    LET             = 11;
-    HALT            = 12;
-    ADD             = 13;
-    SUB             = 14;
-    PRC             = 15;
-    INP             = 16;
-    POINTER         = 17;
-    DEFINE          = 18;
-    DUPLICATE       = 19;
-    REG8            = 20;
-    REGX            = 30;
+    END             =  7;
+    IF              =  8;
+    ELSE            =  9;
+    LET             = 10;
+    HALT            = 11;
+    ADD             = 12;
+    SUB             = 13;
+    PRC             = 14;
+    INP             = 15;
+    POINTER         = 16;
+    DEFINE          = 17;
+    REG8            = 18;
+    REGX            = 19;
+    COMMA           = 20;
+    STORE           = 21;
+    EQUAL           = 22;
+    GREATER         = 23;
+    NOT             = 24;
+    AND             = 25;
+    OR              = 26;
 
 def optok(string: str, off: int) -> TokenType:
     match string[off]:
         case '!': return TokenType.CALL;
-        case '.': return TokenType.POP;
         case '+': return TokenType.ADD;
         case '-': return TokenType.SUB;
         case '(': return TokenType.OPEN_PAREN;
         case ')': return TokenType.CLOSE_PAREN;
         case '*': return TokenType.POINTER;
         case '#': return TokenType.DEFINE;
+        case ',': return TokenType.COMMA;
+        case '=': return TokenType.STORE;
         case _:   return None;
 def tokfstr(string: str) -> TokenType:
     if len(string) == 0: return None;
@@ -46,9 +52,14 @@ def tokfstr(string: str) -> TokenType:
         case "hlt":     return TokenType.HALT;
         case "prc":     return TokenType.PRC;
         case "inp":     return TokenType.INP;
-        case "dup":     return TokenType.DUPLICATE;
         case "r8":      return TokenType.REG8;
         case "rx":      return TokenType.REGX;
+        case "store":   return TokenType.STORE;
+        case "equ":     return TokenType.EQUAL;
+        case "grt":     return TokenType.GREATER;
+        case "not":     return TokenType.NOT;
+        case "and":     return TokenType.AND;
+        case "or":      return TokenType.OR;
         case _:
             try:
                 int(string);
