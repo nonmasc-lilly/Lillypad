@@ -28,15 +28,23 @@ class TokenType(Enum):
     NOT             = 24;
     AND             = 25;
     OR              = 26;
+    CONST           = 27;
+    REFERENCE       = 28;
+    CAST            = 29;
+    INT             = 30;
 
-def optok(string: str, off: int) -> TokenType:
+def optok(string: str, off: int) -> TokenType | tuple[TokenType, int]:
     match string[off]:
         case '!': return TokenType.CALL;
         case '+': return TokenType.ADD;
         case '-': return TokenType.SUB;
+        case '<':
+            if string[off+1] == '-': return (TokenType.CAST, 2);
+            return None;
         case '(': return TokenType.OPEN_PAREN;
         case ')': return TokenType.CLOSE_PAREN;
         case '*': return TokenType.POINTER;
+        case '&': return TokenType.REFERENCE;
         case '#': return TokenType.DEFINE;
         case ',': return TokenType.COMMA;
         case '=': return TokenType.STORE;
@@ -60,6 +68,8 @@ def tokfstr(string: str) -> TokenType:
         case "not":     return TokenType.NOT;
         case "and":     return TokenType.AND;
         case "or":      return TokenType.OR;
+        case "const":   return TokenType.CONST;
+        case "int":     return TokenType.INT;
         case _:
             try:
                 int(string);
@@ -133,8 +143,12 @@ def lex_string(string: str) -> list[Token]:
             if tokfstr(buf) != None:
                 tokens.append(Token(tokfstr(buf), buf, line));
                 buf = "";
-            tokens.append(Token(optok(string, i), None, line));
-            i+=1;
+            if type(optok(string, i)) != tuple:
+                tokens.append(Token(optok(string, i), None, line));
+                i += 1;
+            else:
+                tokens.append(Token(optok(string, i)[0], None, line));
+                i += optok(string, i)[1];
             continue;
         buf += string[i];
         i += 1;
