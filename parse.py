@@ -456,8 +456,6 @@ def parse_store(lex_list: list[Token], idx: int, state: STATE) -> tuple[int, AST
     ASSERT(tmp != None, "Expected expression in store statement", lex_list[idx]);
     ret.add_child(tmp[1]);
     off += tmp[0];
-    print("HI");
-    print(f"{ret}")
     return (off, ret);
 
 def parse_const_str(lex_list: list[Token], idx: int, state: STATE) -> tuple[int, AST]:
@@ -519,7 +517,6 @@ def parse_typed_iden(lex_list: list[Token], idx: int, state: STATE) -> tuple[int
         case TokenType.POINTER:
             ASSERT(lex_list[idx+1].node_type == TokenType.IDEN,
                 "Expected identifier after reg8", lex_list[idx]);
-            print(f"{lex_list[idx]} :: {lex_list[idx+1]}")
             return (2, AST(ASTType.POINTER, lex_list[idx+1].value));
 
 ############################

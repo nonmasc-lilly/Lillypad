@@ -10,6 +10,6 @@ end
 
 main(argc, *argv)
     const str "Hello World"
-    !print(x)
+    !print(str)
     hlt 0
 end
