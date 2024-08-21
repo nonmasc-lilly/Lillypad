@@ -44,8 +44,8 @@ Backus Naur Form:
 <or>          ::= "or"  <expr> <expr>
 <type>        ::= "*" | "r8" | "rx" | "int"
 <cast>        ::= "(" <type> "<-" <type> ")" "<-" <expr>
-<reference>   ::= "&"  <expr> <expr>
-<dereference> ::= "*"  <expr> <expr>
+<reference>   ::= "&"  <iden>
+<dereference> ::= "*"  <expr>
 <strconst>    ::= '"' <ALPHA> '"'
 ```
 

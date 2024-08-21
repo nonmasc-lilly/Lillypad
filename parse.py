@@ -38,16 +38,14 @@ class ASTType(Enum):
     IF                  = 22;
     INP                 = 23;
     HALT                = 24;
-    RETURN              = 25;
 
-
-def ASTtoExprType(ntype: ASTType) -> ExprType:
-    match ntype:
-        case ASTType.IDEN:    return ExprType.BIGINT;
+def ASTtoExprType(ttype: ASTType) -> ExprType:
+    match ttype:
+        case ASTType.R8: return ExprType.SMALLINT;
+        case ASTType.RX: return ExprType.MEDINT;
+        case ASTType.IDEN: return ExprType.BIGINT;
         case ASTType.POINTER: return ExprType.POINTER;
-        case ASTType.R8:      return ExprType.SMALLINT;
-        case ASTType.RX:      return ExprType.MEDINT;
-        case _:               return ExprType.NONE;
+        case _: return ExprType.NONE;
 
 class AST:
     def __init__(self, node_type: ASTType, value: str = "") -> None:
@@ -239,6 +237,8 @@ def parse_cast(lex_list: list[Token], idx: int, state: STATE, etype: ExprType) -
     off += tmp[0];
     return (off, tmp[1]);
 
+
+# TODO: add
 def parse_inp(lex_list: list[Token], idx: int, state: STATE, etype: ExprType) -> tuple[int, AST]:
     if lex_list[idx].node_type != TokenType.INP: return None;
     ASSERT(etype == ExprType.SMALLINT,
@@ -259,6 +259,7 @@ def parse_add(lex_list: list[Token], idx: int, state: STATE, etype: ExprType) ->
     off += tmp[0];
     ret.add_child(tmp[1]);
     return (off, ret);
+# TODO: sub
 def parse_sub(lex_list: list[Token], idx: int, state: STATE, etype: ExprType) -> tuple[int, AST]:
     ret: AST;
     off: int;
@@ -312,18 +313,6 @@ def parse_expr(lex_list: list[Token], idx: int, state: STATE, etype: ExprType) -
 ##########################
 #    Parse Statements    #
 ##########################
-
-def parse_return(lex_list: list[Token], idx: int, state: STATE) -> tuple[int, AST]:
-    ret: AST;
-    off: int;
-    tmp: tuple[int, AST];
-    if lex_list[idx].node_type != TokenType.RETURN: return None;
-    ret = AST(ASTType.RETURN);
-    tmp = parse_expr(lex_list, idx+1, state, ExprType.BIGINT);
-    ASSERT(tmp != None, "Expected expression after return", lex_list[idx+1]);
-    ret.add_child(tmp[1]);
-    off = tmp[0]+1;
-    return (off, ret);
 
 def parse_while(lex_list: list[Token], idx: int, state: STATE) -> tuple[int, AST]:
     ret: AST;
@@ -498,8 +487,7 @@ def parse_statement(lex_list: list[Token], idx: int, state: STATE) -> tuple[int,
     prim_statements = [
         parse_while, parse_if,    parse_let,
         parse_hlt,   parse_print, parse_input,
-        parse_call,  parse_store, parse_const_str,
-        parse_return
+        parse_call,  parse_store, parse_const_str
     ];
     ret: tuple[int,AST];
     for i in range(len(prim_statements)):

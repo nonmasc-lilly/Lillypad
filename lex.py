@@ -32,7 +32,6 @@ class TokenType(Enum):
     REFERENCE       = 28;
     CAST            = 29;
     INT             = 30;
-    RETURN          = 31;
 
 def optok(string: str, off: int) -> TokenType | tuple[TokenType, int]:
     match string[off]:
@@ -71,7 +70,6 @@ def tokfstr(string: str) -> TokenType:
         case "or":      return TokenType.OR;
         case "const":   return TokenType.CONST;
         case "int":     return TokenType.INT;
-        case "return":  return TokenType.RETURN;
         case _:
             try:
                 int(string);

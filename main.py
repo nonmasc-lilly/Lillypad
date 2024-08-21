@@ -3,8 +3,6 @@ import lex
 import parse
 from typing import TextIO
 
-#TODO: ADD PREPROCESSOR
-
 def main(argc: int, argv: list[str]) -> int:
     fp:           TextIO            = None;
     file_content: str               = None;
