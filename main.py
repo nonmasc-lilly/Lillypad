@@ -1,26 +1,17 @@
-import sys
-import lex
-import parse
-from typing import TextIO
+import typing;
+import sys;
+import lex;
 
-def main(argc: int, argv: list[str]) -> int:
-    fp:           TextIO            = None;
-    file_content: str               = None;
-    lexed_tokens: list[lex.token]   = None;
-    parse_tree:   parse.AST         = None;
-    if argc != 2:
-        print(f"Input error: usage.\nCorrect usage: {argv[0]} <input file>");
+def main(argc: int, argv: list[str]) -> None:
+    if argc < 3:
+        print(f"Expected two arguments: {argv[0]} <infile> <outfile>");
         exit(1);
-    fp = open(argv[1], "r");
-    file_content = fp.read();
-    fp.close();
-    lexed_tokens = lex.lex_string(file_content);
-    for idx, i in enumerate(lexed_tokens):
-        print(f"{idx}: {str(i)}");
-    parse_tree = parse.parse_program(lexed_tokens);
-    print(parse_tree);
-    return 0;
+    print("LILLYPAD COMPILER 2024");
+    file: typing.TextIO = open(argv[1], "r");
+    file_string: str    = file.read();
+    file.close();
+    lexed_tokens: list[lex.Token] = lex.lex_string(file_string);
+    for i in lexed_tokens:
+        print(f"{i}");
 
-
-if __name__ == "__main__":
-    exit(main(len(sys.argv), sys.argv));
+if __name__ == "__main__": main(len(sys.argv), sys.argv);

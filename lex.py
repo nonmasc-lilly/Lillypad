@@ -1,158 +1,119 @@
-from enum import Enum
+import enum;
+import typing;
+"""
+We must lex the following tokens:
+- typedef
+- struct
+- label
+- let
+- set
+- call
+- goto
+- return
+- syscall
+- store
+- add
+- subtract
+- reference
+- dereference
+- int
+- :
+- .
+- {
+- }
+- identifier
+- integer
+"""
 
-class TokenType(Enum):
-    IDEN            =  0;
-    INTEGER_CONST   =  1;
-    STRING_CONST    =  2;
-    OPEN_PAREN      =  3;
-    CLOSE_PAREN     =  4;
-    WHILE           =  5;
-    CALL            =  6;
-    END             =  7;
-    IF              =  8;
-    ELSE            =  9;
-    LET             = 10;
-    HALT            = 11;
-    ADD             = 12;
-    SUB             = 13;
-    PRC             = 14;
-    INP             = 15;
-    POINTER         = 16;
-    DEFINE          = 17;
-    REG8            = 18;
-    REGX            = 19;
-    COMMA           = 20;
-    STORE           = 21;
-    EQUAL           = 22;
-    GREATER         = 23;
-    NOT             = 24;
-    AND             = 25;
-    OR              = 26;
-    CONST           = 27;
-    REFERENCE       = 28;
-    CAST            = 29;
-    INT             = 30;
-
-def optok(string: str, off: int) -> TokenType | tuple[TokenType, int]:
-    match string[off]:
-        case '!': return TokenType.CALL;
-        case '+': return TokenType.ADD;
-        case '-': return TokenType.SUB;
-        case '<':
-            if string[off+1] == '-': return (TokenType.CAST, 2);
-            return None;
-        case '(': return TokenType.OPEN_PAREN;
-        case ')': return TokenType.CLOSE_PAREN;
-        case '*': return TokenType.POINTER;
-        case '&': return TokenType.REFERENCE;
-        case '#': return TokenType.DEFINE;
-        case ',': return TokenType.COMMA;
-        case '=': return TokenType.STORE;
-        case _:   return None;
-def tokfstr(string: str) -> TokenType:
-    if len(string) == 0: return None;
-    match string:
-        case "while":   return TokenType.WHILE;
-        case "end":     return TokenType.END;
-        case "if":      return TokenType.IF;
-        case "else":    return TokenType.ELSE;
-        case "let":     return TokenType.LET;
-        case "hlt":     return TokenType.HALT;
-        case "prc":     return TokenType.PRC;
-        case "inp":     return TokenType.INP;
-        case "r8":      return TokenType.REG8;
-        case "rx":      return TokenType.REGX;
-        case "store":   return TokenType.STORE;
-        case "equ":     return TokenType.EQUAL;
-        case "grt":     return TokenType.GREATER;
-        case "not":     return TokenType.NOT;
-        case "and":     return TokenType.AND;
-        case "or":      return TokenType.OR;
-        case "const":   return TokenType.CONST;
-        case "int":     return TokenType.INT;
-        case _:
-            try:
-                int(string);
-                return TokenType.INTEGER_CONST;
-            except ValueError:
-                return TokenType.IDEN;
-
+class TokenType(enum.Enum):
+    NULL        =    0;
+    TYPEDEF     =    1;
+    STRUCT      =    2;
+    LABEL       =    3;
+    LET         =    4;
+    SET         =    5;
+    CALL        =    6;
+    GOTO        =    7;
+    RETURN      =    8;
+    IF          =    9;
+    SYSCALL     =   10;
+    STORE       =   11;
+    ADD         =   12;
+    SUBTRACT    =   13;
+    REFERENCE   =   14;
+    DEREFERENCE =   15;
+    INT         =   16;
+    COLON       =   17;
+    DOT         =   18;
+    OPEN_CURLY  =   19;
+    CLOSE_CURLY =   20;
+    IDENTIFIER  =   21;
+    INTEGER     =   22;
 
 class Token:
-    def __init__(self, type: TokenType, value: str, line: int):
-        self.node_type = type;
-        self.value = value;
-        self.line = line;
-    def __repr__(self):
-        return f"({self.node_type.name} , {self.value}) on line: {self.line}";
+    def __init__(self, type: TokenType, value: str, line: str) -> None:
+        self.type: TokenType = type;
+        self.value: str = value;
+        self.line: str = line;
+    def __repr__(self) -> str:
+        return f"ln[{self.line}]: {self.type.name} : {self.value}"
 
+def WHITESPACE(a: str) -> bool:
+    return a == ' ' or a == '\n' or a == '\r' or a == '\t';
+
+# TODO both token_from functions
+def token_from_buf(buf: str) -> TokenType:
+    match buf:
+        case "": return TokenType.NULL;
+        case "typedef":     return TokenType.TYPEDEF;
+        case "struct":      return TokenType.STRUCT;
+        case "label":       return TokenType.LABEL;
+        case "let":         return TokenType.LET;
+        case "set":         return TokenType.SET;
+        case "call":        return TokenType.CALL;
+        case "goto":        return TokenType.GOTO;
+        case "if":          return TokenType.IF;
+        case "syscall":     return TokenType.SYSCALL;
+        case "store":       return TokenType.STORE;
+        case "add":         return TokenType.ADD;
+        case "subtract":    return TokenType.SUBTRACT;
+        case "reference":   return TokenType.REFERENCE;
+        case "dereference": return TokenType.DEREFERENCE;
+        case "int":         return TokenType.INT;
+        case _:
+            try:
+                if buf[:2] == '0x': x = int(buf[2:],16);
+                else: x = int(buf,10);
+                return TokenType.INTEGER;
+            except ValueError:
+                return TokenType.IDENTIFIER;
+def token_from_char(string: str, offset: int) -> TokenType:
+    match string[offset]:
+        case '.':   return TokenType.DOT;
+        case ':':   return TokenType.COLON;
+        case '{':   return TokenType.OPEN_CURLY;
+        case '}':   return TokenType.CLOSE_CURLY;
+        case _:     return TokenType.NULL;
+def token_has_value(type: TokenType) -> bool:
+    match type:
+        case TokenType.INTEGER: return True;
+        case TokenType.IDENTIFIER: return True;
 def lex_string(string: str) -> list[Token]:
-    tokens: list[Token] = None;
-    i:      int         = None;
-    buf:    str         = None;
-    line:   int         = None;
-    buf = "";
-    tokens = [];
-    i = 0;
+    ret: list[Token] = [];
+    buf: str = "";
     line = 0;
-    while i < len(string):
-        if string[i] == '\n':
-            line += 1;
-        if string[i] == '"':
-            if tokfstr(buf) != None:
-                tokens.append(Token(tokfstr(buf), buf, line));
-                buf = "";
-            i += 1;
+    for idx, i in enumerate(string):
+        if i == '\n': line += 1;
+        if WHITESPACE(i):
+            if token_from_buf(buf) != TokenType.NULL: ret.append(Token(token_from_buf(buf), buf if token_has_value(token_from_buf(buf)) else "", line));
             buf = "";
-            while i < len(string) and string[i] != '"':
-                if string[i] == '\n': line += 1;
-                if string[i] == '\\':
-                    tmp: str = "";
-                    j:   int = i+1;
-                    while not (string[j].isspace() or string[j] == '"'):
-                        tmp += string[j];
-                        j+=1;
-                    try:
-                        print(tmp)
-                        int(tmp);
-                        buf += chr(int(tmp));
-                        i = j
-                        print(string[i]);
-                    except ValueError:
-                        i+=1;
-                        buf += string[i];
-                    continue;
-                buf += string[i];
-                i += 1;
-            tokens.append(Token(TokenType.STRING_CONST, buf, line));
+            continue;
+        if token_from_char(string, idx) != TokenType.NULL:
+            if token_from_buf(buf) != TokenType.NULL: ret.append(Token(token_from_buf(buf), buf if token_has_value(token_from_buf(buf)) else "", line));
+            ret.append(Token(token_from_char(string, idx), "", line));
             buf = "";
-            i+=1;
             continue;
-        if string[i] == '/' and string[i+1] == '*':
-            while not(string[i] == '*' and string[i+1] == '/'):
-                i+=1;
-            i+=2;
-            continue;
-        if string[i] == ' ' or string[i] == '\n' or string[i] == '\t' or string[i] == '\r':
-            if tokfstr(buf) != None:
-                tokens.append(Token(tokfstr(buf), buf, line));
-                buf = "";
-            i+=1;
-            continue;
-        if optok(string, i) != None:
-            if tokfstr(buf) != None:
-                tokens.append(Token(tokfstr(buf), buf, line));
-                buf = "";
-            if type(optok(string, i)) != tuple:
-                tokens.append(Token(optok(string, i), None, line));
-                i += 1;
-            else:
-                tokens.append(Token(optok(string, i)[0], None, line));
-                i += optok(string, i)[1];
-            continue;
-        buf += string[i];
-        i += 1;
-    if tokfstr(buf) != None:
-        tokens.append(Token(tokfstr(buf), buf, line));
-        buf = "";
-    return tokens;
+        buf += i;
+    if token_from_buf(buf) != TokenType.NULL: ret.append(Token(token_from_buf(buf), buf if token_has_value(token_from_buf(buf)) else "", line));
+    buf = "";
+    return ret;
